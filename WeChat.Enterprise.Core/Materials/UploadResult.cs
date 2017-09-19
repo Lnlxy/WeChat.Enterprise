@@ -14,11 +14,11 @@ namespace WeChat.Enterprise
 
         public string MediaId { get; private set; }
 
-        public Media Media { get; private set; }
+        public Material Media { get; private set; }
 
         public string CreateAt { get; private set; }
 
-        public UploadResult(int errCode, string errMsg, string type, string mediaId, string createAt, Media media)
+        public UploadResult(int errCode, string errMsg, string type, string mediaId, string createAt, Material media)
         {
             ErrCode = errCode;
             ErrMsg = errMsg;

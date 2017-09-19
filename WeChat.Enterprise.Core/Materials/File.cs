@@ -2,9 +2,9 @@
 
 namespace WeChat.Enterprise
 {
-    public sealed class File : Media
+    sealed class File : Material
     {
-        public override int MaxLength => 20 * 1024;
+        public override int MaxLength => 20 * 1024 * 1024;
 
         public override string Type => MediaTypes.File;
 

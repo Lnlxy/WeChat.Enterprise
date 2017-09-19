@@ -2,9 +2,9 @@
 
 namespace WeChat.Enterprise
 {
-    public sealed class Voice : Media
+    sealed class Voice : Material
     {
-        public override int MaxLength => 2 * 1024;
+        public override int MaxLength => 2 * 1024 * 1024;
 
         public override string Type => MediaTypes.Voice;
 

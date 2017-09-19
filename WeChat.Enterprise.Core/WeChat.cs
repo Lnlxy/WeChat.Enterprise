@@ -65,7 +65,7 @@ namespace WeChat.Enterprise
             return Task.Run(async () =>
             {
                 var token = accessTokenCache[agent];
-                var media = Media.LoadFrom(file);
+                var media = Material.LoadFrom(file);
                 var message = await GetAccessDomainUrl()
                     .AppendPathSegment("media")
                     .AppendPathSegment("upload")
