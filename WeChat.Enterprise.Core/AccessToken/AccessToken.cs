@@ -25,5 +25,9 @@ namespace WeChat.Enterprise
             Token = token;
             ExpirseIn = expirseIn;
         }
+        public static implicit operator string(AccessToken token)
+        {
+            return token.Token;
+        }
     }
 }

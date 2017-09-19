@@ -1,4 +1,8 @@
 ﻿using Flurl;
+using Flurl.Http;
+using Newtonsoft.Json;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace WeChat.Enterprise
 {
@@ -50,6 +54,29 @@ namespace WeChat.Enterprise
             return host.AppendPathSegment("cgi-bin");
         }
 
-
+        /// <summary>
+        /// 上传临时文件。
+        /// </summary>
+        /// <param name="agent"></param>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public Task<UploadResult> UploadMediaAsync(AgentKey agent, string file)
+        {
+            return Task.Run(async () =>
+            {
+                var token = accessTokenCache[agent];
+                var media = Media.LoadFrom(file);
+                var message = await GetAccessDomainUrl()
+                    .AppendPathSegment("media")
+                    .AppendPathSegment("upload")
+                    .SetQueryParam("access_token", token)
+                    .SetQueryParam("type", media.Type)
+                    .PostAsync(media.CreateMultipartFormDataContent()).ReceiveJson();
+                return new UploadResult((int)message.errcode,
+                    (string)message.errmsg, media.Type,
+                    (string)message.media_id,
+                    (string)message.created_at, media);
+            });
+        } 
     }
 }

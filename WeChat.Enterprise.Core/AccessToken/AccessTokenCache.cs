@@ -5,7 +5,7 @@ using Flurl.Http;
 
 namespace WeChat.Enterprise
 {
-    internal class AccessTokenCache
+      sealed class AccessTokenCache
     {
         private readonly WeChat weChat;
         private readonly MemoryCache cache;
@@ -50,7 +50,7 @@ namespace WeChat.Enterprise
                .AppendPathSegment("gettoken")
                .SetQueryParams(new { corpid = weChat.CorpId, corpsecret = key.Secret })
                .GetJsonAsync();
-                if (result.errcode == 0)
+                if (result.errcode != 0)
                 {
                     throw new WeChatException((int)result.errcode, (string)result.errmsg);
                 }
@@ -58,6 +58,6 @@ namespace WeChat.Enterprise
                 arg.SetValue(token).SetAbsoluteExpiration(new TimeSpan(0, 0, token.ExpirseIn));
                 return token;
             });
-        }
-    }
+        } 
+}
 }

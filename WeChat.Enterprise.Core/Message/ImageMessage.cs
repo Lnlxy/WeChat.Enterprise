@@ -19,7 +19,6 @@ namespace WeChat.Enterprise
         
         protected override void GetContentExtra(JObject content)
         {
-            content.Add("image",new JProperty("media_id",))
         }
     }
 }
