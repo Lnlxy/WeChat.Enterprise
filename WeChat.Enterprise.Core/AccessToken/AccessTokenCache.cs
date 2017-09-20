@@ -5,28 +5,17 @@ using Flurl.Http;
 
 namespace WeChat.Enterprise
 {
-      sealed class AccessTokenCache
+    sealed class AccessTokenCache
     {
         private readonly WeChat weChat;
         private readonly MemoryCache cache;
         private readonly object readOnlyObj = new object();
-
-        public AccessToken this[int agentId, string secret]
+          
+        public Task<AccessToken> this[AgentKey key]
         {
             get
             {
-                return this[new AgentKey(agentId, secret)];
-            }
-        }
-
-        public AccessToken this[AgentKey key]
-        {
-            get
-            {
-                lock (readOnlyObj)
-                {
-                    return GetAccessTokenAsync(key).Result;
-                }
+                return GetAccessTokenAsync(key);
             }
         }
 
@@ -58,6 +47,6 @@ namespace WeChat.Enterprise
                 arg.SetValue(token).SetAbsoluteExpiration(new TimeSpan(0, 0, token.ExpirseIn));
                 return token;
             });
-        } 
-}
+        }
+    }
 }

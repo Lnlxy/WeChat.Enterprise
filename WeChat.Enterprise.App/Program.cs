@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace WeChat.Enterprise.App
 {
@@ -14,11 +11,11 @@ namespace WeChat.Enterprise.App
         }
         public static void CreateAccessToken(string corpId, int agentId, string secret)
         {
-
             WeChat weChat = new WeChat(corpId);
             var key = new AgentKey(agentId, secret);
             var result = weChat.UploadMediaAsync(key, @"C:\Users\hoze\Pictures\200826114338-10831.jpg").Result;
-
+            var matrial = weChat.DownloadMediaAsync(key, result.MediaId).Result;
+            var agent = weChat.GetAgentAsync(key).Result;
         }
     }
 }

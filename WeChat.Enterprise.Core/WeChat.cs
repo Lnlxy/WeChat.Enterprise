@@ -1,6 +1,7 @@
 ﻿using Flurl;
 using Flurl.Http;
 using Newtonsoft.Json;
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -40,7 +41,7 @@ namespace WeChat.Enterprise
             return new MessageSender<T>(this);
         }
 
-        public AccessToken GetAgentAccessToken(AgentKey key)
+        public Task<AccessToken> GetAccessTokenAsync(AgentKey key)
         {
             return accessTokenCache[key];
         }
@@ -64,19 +65,59 @@ namespace WeChat.Enterprise
         {
             return Task.Run(async () =>
             {
-                var token = accessTokenCache[agent];
+                var token = await GetAccessTokenAsync(agent);
                 var media = Material.LoadFrom(file);
-                var message = await GetAccessDomainUrl()
+                var result = await GetAccessDomainUrl()
                     .AppendPathSegment("media")
                     .AppendPathSegment("upload")
                     .SetQueryParam("access_token", token)
                     .SetQueryParam("type", media.Type)
                     .PostAsync(media.CreateMultipartFormDataContent()).ReceiveJson();
-                return new UploadResult((int)message.errcode,
-                    (string)message.errmsg, media.Type,
-                    (string)message.media_id,
-                    (string)message.created_at, media);
+                return new UploadResult((int)result.errcode,
+                    (string)result.errmsg, media.Type,
+                    (string)result.media_id,
+                    (string)result.created_at, media);
             });
-        } 
+        }
+
+        public Task<Material> DownloadMediaAsync(AgentKey key, string mediaId)
+        {
+            //https://qyapi.weixin.qq.com/cgi-bin/media/get?access_token=ACCESS_TOKEN&media_id=MEDIA_ID
+            return Task.Run(async () =>
+            {
+                var token = await GetAccessTokenAsync(key);
+                var result = await GetAccessDomainUrl()
+                .AppendPathSegment("media")
+                .AppendPathSegment("get")
+                .SetQueryParams(new { access_token = token.Token, media_id = mediaId })
+                .GetAsync();
+                return await Material.LoadFromAsync(result.Content);
+            });
+        }
+
+        public Task<Agent> GetAgentAsync(AgentKey agentKey)
+        {
+            //https://qyapi.weixin.qq.com/cgi-bin/agent/get?access_token=ACCESS_TOKEN&agentid=AGENTID;
+            return Task.Run(async () =>
+            {
+                var token = await GetAccessTokenAsync(agentKey);
+                var url = GetAccessDomainUrl()
+                    .AppendPathSegment("agent")
+                    .AppendPathSegment("get")
+                    .SetQueryParams(new { access_token = token.Token, agentid = agentKey.Id });
+                var result = await url.GetJsonAsync();
+                return new Agent((int)result.agentid)
+                {
+                    Name = (string)result.name,
+                    HomeUrl = (string)result.home_url,
+                    SqureLogoUrl = (string)result.square_logo_url,
+                    Description = (string)result.description,
+                    RedirectDomain = (string)result.redirect_domain,
+                    IsClosed = Convert.ToBoolean((int)result.close),
+                    IsReportEnter = Convert.ToBoolean((int)result.isreportenter),
+                    ReportLocationFlag = Convert.ToBoolean((int)result.report_location_flag),
+                };
+            });
+        }
     }
 }

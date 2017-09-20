@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 
 namespace WeChat.Enterprise
@@ -85,7 +86,7 @@ namespace WeChat.Enterprise
                 return new File(info);
             }
         }
-        
+
 
         internal ByteArrayContent CreateByteArrayContent()
         {
@@ -104,6 +105,19 @@ namespace WeChat.Enterprise
                 content.Headers.TryAddWithoutValidation("Content-Type", ContentType);
                 return content;
             }
+        }
+
+        internal static async System.Threading.Tasks.Task<Material> LoadFromAsync(HttpContent content)
+        {
+            var fileName = content.Headers.ContentDisposition.FileName.Trim('"');
+            var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), fileName);
+            using (var stream = await content.ReadAsStreamAsync())
+            {
+                var bytes = new byte[stream.Length];
+                stream.Read(bytes, 0, bytes.Length);
+                await System.IO.File.WriteAllBytesAsync(path, bytes);
+            }
+            return LoadFrom(path);
         }
 
         internal MultipartFormDataContent CreateMultipartFormDataContent(string boundary = null)
