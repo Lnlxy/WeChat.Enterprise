@@ -111,12 +111,8 @@ namespace WeChat.Enterprise
         {
             var fileName = content.Headers.ContentDisposition.FileName.Trim('"');
             var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), fileName);
-            using (var stream = await content.ReadAsStreamAsync())
-            {
-                var bytes = new byte[stream.Length];
-                stream.Read(bytes, 0, bytes.Length);
-                await System.IO.File.WriteAllBytesAsync(path, bytes);
-            }
+            ;
+            await System.IO.File.WriteAllBytesAsync(path, await content.ReadAsByteArrayAsync());
             return LoadFrom(path);
         }
 
