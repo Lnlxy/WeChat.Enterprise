@@ -65,7 +65,7 @@ namespace WeChat.Enterprise
                 var url = _weChat.GetAccessDomainUrl()
                     .AppendPathSegment("media")
                     .AppendPathSegment("upload")
-                    .SetQueryParam("type", material.MediaType);
+                    .SetQueryParam("type", MediaTypeStrings.GetMediaTypeString(material.MediaType));
                 ree:
                 var result = await url.SetQueryParam("access_token", token)
                     .PostAsync(material.CreateMultipartFormDataContent())

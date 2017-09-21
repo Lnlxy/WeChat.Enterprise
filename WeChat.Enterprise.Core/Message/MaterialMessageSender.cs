@@ -43,11 +43,11 @@ namespace WeChat.Enterprise
                 var material = await getMaterialFunc.Invoke(agentKey);
                 content.Add("msgtype", MediaTypeStrings.GetMessageTypeString(material.MediaType));
                 var cont = new JObject();
-                content.Add("media_id", material.MediaId);
+                cont.Add("media_id", material.MediaId);
                 switch (material.MediaType)
                 {
                     case MediaType.Image:
-                        content.Add("iamge", cont);
+                        content.Add("image", cont);
                         break;
                     case MediaType.Voice:
                         content.Add("voice", cont);
