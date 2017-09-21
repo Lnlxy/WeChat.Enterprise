@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System;
 using Flurl.Http;
+using System.Diagnostics;
 
 namespace WeChat.Enterprise
 {
@@ -10,7 +11,7 @@ namespace WeChat.Enterprise
         private readonly WeChat weChat;
         private readonly MemoryCache cache;
         private readonly object readOnlyObj = new object();
-          
+
         public Task<AccessToken> this[AgentKey key]
         {
             get
@@ -30,23 +31,47 @@ namespace WeChat.Enterprise
             return cache.GetOrCreateAsync(key, CreateAccessToken);
         }
 
-        private Task<AccessToken> CreateAccessToken(ICacheEntry arg)
+        /// <summary>
+        /// 强制更新和获取Token。
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public Task<AccessToken> UpdateAndGetTokeAsync(AgentKey key)
+        {
+            return Task.Run(async () =>
+           {
+               var token = await CreateAccessTokenCore(weChat.CorpId, key.Secret);
+               cache.Set(key, token, new TimeSpan(0, 0, token.ExpirseIn));
+               return token;
+           });
+        }
+
+        private Task<AccessToken> CreateAccessToken(ICacheEntry entry)
         {
             return Task.Run(async () =>
             {
-                var key = (AgentKey)arg.Key;
-                var result = await weChat.GetAccessDomainUrl()
-               .AppendPathSegment("gettoken")
-               .SetQueryParams(new { corpid = weChat.CorpId, corpsecret = key.Secret })
-               .GetJsonAsync();
-                if (result.errcode != 0)
-                {
-                    throw new WeChatException((int)result.errcode, (string)result.errmsg);
-                }
-                AccessToken token = new AccessToken((string)result.access_token, (int)result.expires_in);
-                arg.SetValue(token).SetAbsoluteExpiration(new TimeSpan(0, 0, token.ExpirseIn));
+                var key = (AgentKey)entry.Key;
+                AccessToken token = await CreateAccessTokenCore(weChat.CorpId, key.Secret);
+                entry.SetValue(token).SetAbsoluteExpiration(new TimeSpan(0, 0, token.ExpirseIn));
                 return token;
             });
+        }
+
+        private async Task<AccessToken> CreateAccessTokenCore(string corpId, string secret)
+        {
+            var sw = new Stopwatch();
+            sw.Start();
+            var result = await weChat.GetAccessDomainUrl()
+           .AppendPathSegment("gettoken")
+           .SetQueryParams(new { corpid = corpId, corpsecret = secret })
+           .GetJsonAsync();
+            sw.Stop();
+            if (result.errcode != 0)
+            {
+                throw new WeChatException((int)result.errcode, (string)result.errmsg);
+            }
+            AccessToken token = new AccessToken((string)result.access_token, (int)result.expires_in - (int)(sw.ElapsedMilliseconds / 1000));
+            return token;
         }
     }
 }

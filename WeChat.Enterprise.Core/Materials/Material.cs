@@ -1,26 +1,35 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace WeChat.Enterprise
 {
     /// <summary>
     /// 定义企业微信支持的媒体素材信息。
     /// </summary>
-    public abstract class Material
+    public sealed class Material
     {
+        private static readonly Dictionary<string, Tuple<int, int>> storageLimits = new Dictionary<string, Tuple<int, int>>()
+        {
+            [MediaTypes.File] = new Tuple<int, int>(5, 20 * 1024 * 1024),
+            [MediaTypes.Image] = new Tuple<int, int>(5, 2 * 1024 * 1024),
+            [MediaTypes.Video] = new Tuple<int, int>(5, 10 * 1024 * 1024),
+            [MediaTypes.Voice] = new Tuple<int, int>(5, 2 * 1024 * 1024),
+        };
+
         private readonly FileInfo _fileInfo;
 
         /// <summary>
         /// 获取一个值，该值表示素材最大长度。
         /// </summary>
-        public abstract int MaxLength { get; }
+        public int Maximum { get; private set; }
 
         /// <summary>
         /// 获取一个值，该值表示素材最小长度。
         /// </summary>
-        public int MinLength => 5;
+        public int Minimum { get; private set; }
 
         /// <summary>
         /// 获取一个值，该值表示素材长度。
@@ -30,7 +39,7 @@ namespace WeChat.Enterprise
         /// <summary>
         /// 获取一个值，该值表示素材媒体类型。
         /// </summary>
-        public abstract string Type { get; }
+        public string Type { get; private set; }
 
         /// <summary>
         /// 获取一个值，该值表示素材名称。
@@ -52,8 +61,12 @@ namespace WeChat.Enterprise
         /// </summary>
         public string ContentType { get; private set; }
 
-        protected Material(FileInfo info)
+        private Material(string mediaType, FileInfo info)
         {
+            Type = mediaType;
+            var limit = storageLimits[mediaType];
+            Minimum = limit.Item1;
+            Maximum = limit.Item2;
             _fileInfo = info;
             ContentType = MimeMapping.GetMimeMapping(info.Name);
         }
@@ -63,36 +76,39 @@ namespace WeChat.Enterprise
         /// </summary>
         /// <param name="fileName">文件名。</param>
         /// <returns>返回一个素材内容。</returns>
-        public static Material LoadFrom(string fileName)
+        public static Task<Material> LoadFromAsync(string fileName)
         {
-            FileInfo info = new FileInfo(fileName);
-            var extension = info.Extension;
+            return Task.Run(() =>
+            {
+                FileInfo info = new FileInfo(fileName);
+                var extension = info.Extension;
 
-            if (string.Equals(".jpg", extension, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(".png", extension, StringComparison.OrdinalIgnoreCase))
-            {
-                return new Image(info);
-            }
-            else if (string.Equals(".arm", extension, StringComparison.OrdinalIgnoreCase))
-            {
-                return new Voice(info);
-            }
-            else if (string.Equals(".mp4", extension, StringComparison.OrdinalIgnoreCase))
-            {
-                return new Video(info);
-            }
-            else
-            {
-                return new File(info);
-            }
+                if (string.Equals(".jpg", extension, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(".png", extension, StringComparison.OrdinalIgnoreCase))
+                {
+                    return new Material(MediaTypes.Image, info);
+                }
+                else if (string.Equals(".arm", extension, StringComparison.OrdinalIgnoreCase))
+                {
+                    return new Material(MediaTypes.Voice, info);
+                }
+                else if (string.Equals(".mp4", extension, StringComparison.OrdinalIgnoreCase))
+                {
+                    return new Material(MediaTypes.Video, info);
+                }
+                else
+                {
+                    return new Material(MediaTypes.File, info);
+                }
+            });
         }
 
 
         internal ByteArrayContent CreateByteArrayContent()
         {
-            if (Length < MinLength || Length > MaxLength)
+            if (Length < Minimum || Length > Maximum)
             {
-                throw new OutOfMemoryException($"media sizes of length must between {MinLength} and {MaxLength} bytes.");
+                throw new OutOfMemoryException($"media sizes of length must between {Minimum} and {Maximum} bytes.");
             }
             using (var stream = _fileInfo.OpenRead())
             {
@@ -107,13 +123,13 @@ namespace WeChat.Enterprise
             }
         }
 
-        internal static async System.Threading.Tasks.Task<Material> LoadFromAsync(HttpContent content)
+        internal static async Task<Material> LoadFromAsync(HttpContent content)
         {
             var fileName = content.Headers.ContentDisposition.FileName.Trim('"');
             var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), fileName);
             ;
-            await System.IO.File.WriteAllBytesAsync(path, await content.ReadAsByteArrayAsync());
-            return LoadFrom(path);
+            await File.WriteAllBytesAsync(path, await content.ReadAsByteArrayAsync());
+            return await LoadFromAsync(path);
         }
 
         internal MultipartFormDataContent CreateMultipartFormDataContent(string boundary = null)

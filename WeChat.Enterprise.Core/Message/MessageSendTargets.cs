@@ -3,87 +3,100 @@ using System.Collections.Generic;
 
 namespace WeChat.Enterprise
 {
-    public class MessageTargets
+    public class MessageSendTargets
     {
-        public static readonly MessageTargets All = new MessageTargets();
+        public static readonly MessageSendTargets All = new MessageSendTargets();
 
         private bool _toAll = false;
 
         private readonly List<string> _users, _parties, _tags;
-        public IEnumerable<string> Users => _users;
 
-        public IEnumerable<string> Parties => _parties;
+        public bool ToAll => _toAll;
 
-        public IEnumerable<string> Tags => _tags;
+        public List<string> Users => _users;
 
-        public void ChangeToAll(bool toAll)
+        public List<string> Parties => _parties;
+
+        public List<string> Tags => _tags;
+
+        public MessageSendTargets ChangeAll(bool all)
         {
-            _toAll = toAll;
+            _toAll = all;
+            return this;
         }
 
-        public void AddUser(string user)
+        public MessageSendTargets AddUser(string user)
         {
             if (!_users.Contains(user))
             {
                 _users.Add(user);
             }
+            return this;
         }
 
-        public void Addusers(IEnumerable<string> users)
+        public MessageSendTargets Addusers(IEnumerable<string> users)
         {
             foreach (var user in users)
             {
                 AddUser(user);
             }
+            return this;
         }
 
-        public void RemoveUser(string user)
+        public MessageSendTargets RemoveUser(string user)
         {
             _users.Remove(user);
+            return this;
         }
 
-        public void AddParty(string party)
+        public MessageSendTargets AddParty(string party)
         {
             if (!_parties.Contains(party))
             {
                 _parties.Add(party);
             }
+            return this;
         }
 
-        public void AddParties(IEnumerable<string> parties)
+        public MessageSendTargets AddParties(IEnumerable<string> parties)
         {
             foreach (var party in parties)
             {
                 AddParty(party);
             }
+            return this;
         }
 
-        public void RemoveParty(string party)
+        public MessageSendTargets RemoveParty(string party)
         {
             _parties.Remove(party);
+            return this;
         }
-        public void AddTag(string tag)
+        public MessageSendTargets AddTag(string tag)
         {
             if (!_tags.Contains(tag))
             {
                 _tags.Add(tag);
             }
+            return this;
         }
 
-        public void AddTags(IEnumerable<string> tags)
+        public MessageSendTargets AddTags(IEnumerable<string> tags)
         {
             foreach (var tag in tags)
             {
                 AddTag(tag);
             }
+            return this;
         }
 
-        public void RemoveTag(string tag)
+        public MessageSendTargets RemoveTag(string tag)
         {
             _tags.Remove(tag);
+            return this;
         }
 
-        public MessageTargets()
+        public MessageSendTargets()
         {
             _users = new List<string>();
             _parties = new List<string>();

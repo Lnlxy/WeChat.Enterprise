@@ -4,7 +4,7 @@ using System.Text;
 
 namespace WeChat.Enterprise
 {
-    class NewsMessage
+    public class MessageSenderFactory
     {
     }
 }

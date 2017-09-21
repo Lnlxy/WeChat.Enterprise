@@ -1,8 +1,6 @@
 ﻿using Flurl;
 using Flurl.Http;
-using Newtonsoft.Json;
 using System;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace WeChat.Enterprise
@@ -14,6 +12,17 @@ namespace WeChat.Enterprise
     {
         private readonly AccessTokenCache accessTokenCache;
         private readonly string host = "https://qyapi.weixin.qq.com";
+        private readonly int refreshTokenErrorCode = 42001;
+
+        /// <summary>
+        /// 获取一个值，该值标识刷新 AccessToken 的错误码。
+        /// </summary>
+        public int AccessTokenOverduedErrorCode => refreshTokenErrorCode;
+
+        /// <summary>
+        /// 获取或设置一个值，该值表示是否重新获取已过期的 AccessToken。
+        /// </summary>
+        public bool RefreshOverduedAccessToken { get; set; } = true;
 
         public string Host => host;
 
@@ -32,18 +41,34 @@ namespace WeChat.Enterprise
             accessTokenCache = new AccessTokenCache(this);
         }
 
-        /// <summary>
-        /// 创建一个消息发送器。
-        /// </summary>
-        /// <returns></returns>
-        public MessageSender<T> CreateMessageSender<T>() where T : class, IMessage
+
+        public TextMessageSender CreateTextSender()
         {
-            return new MessageSender<T>(this);
+            return new TextMessageSender(this);
         }
 
-        public Task<AccessToken> GetAccessTokenAsync(AgentKey key)
+        public bool NeedRefreshAccessToken(int errorCode)
         {
-            return accessTokenCache[key];
+            return RefreshOverduedAccessToken && errorCode == refreshTokenErrorCode;
+        }
+
+        /// <summary>
+        /// 获取应用访问标识。
+        /// </summary>
+        /// <param name="key">应用值。</param>
+        /// <param name="forceUpdate">是否强制更新标识。</param>
+        /// <returns></returns>
+        public Task<AccessToken> GetAccessTokenAsync(AgentKey key, bool forceUpdate = false)
+        {
+            if (forceUpdate)
+            {
+                return accessTokenCache.GetAccessTokenAsync(key);
+            }
+            else
+            {
+                return accessTokenCache.UpdateAndGetTokeAsync(key);
+            }
+
         }
 
         /// <summary>
@@ -59,21 +84,33 @@ namespace WeChat.Enterprise
         /// 上传临时文件。
         /// </summary>
         /// <param name="agent"></param>
-        /// <param name="file"></param>
+        /// <param name="fileName"></param>
         /// <returns></returns>
-        public Task<UploadResult> UploadMediaAsync(AgentKey agent, string file)
+        public Task<UploadResult> UploadMediaAsync(AgentKey agent, string fileName)
         {
             return Task.Run(async () =>
             {
                 var token = await GetAccessTokenAsync(agent);
-                var media = Material.LoadFrom(file);
-                var result = await GetAccessDomainUrl()
+                var media = await Material.LoadFromAsync(fileName);
+                var url = GetAccessDomainUrl()
                     .AppendPathSegment("media")
                     .AppendPathSegment("upload")
-                    .SetQueryParam("access_token", token)
-                    .SetQueryParam("type", media.Type)
-                    .PostAsync(media.CreateMultipartFormDataContent()).ReceiveJson();
-                return new UploadResult((int)result.errcode,
+                    .SetQueryParam("type", media.Type);
+                ree:
+                var result = await url.SetQueryParam("access_token", token)
+                    .PostAsync(media.CreateMultipartFormDataContent())
+                    .ReceiveJson();
+                var errorCode = (int)result.errcode;
+                if (NeedRefreshAccessToken(errorCode))
+                {
+                    token = await GetAccessTokenAsync(agent, true);
+                    goto ree;
+                }
+                if (errorCode != 0)
+                {
+                    throw new WeChatException(errorCode, (string)result.errmsg);
+                }
+                return new UploadResult(errorCode,
                     (string)result.errmsg, media.Type,
                     (string)result.media_id,
                     (string)result.created_at, media);
