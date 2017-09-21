@@ -11,15 +11,20 @@ namespace WeChat.Enterprise
     /// </summary>
     public sealed class Material
     {
-        private static readonly Dictionary<string, Tuple<int, int>> storageLimits = new Dictionary<string, Tuple<int, int>>()
+        private static readonly Dictionary<MediaType, Tuple<int, int>> storageLimits = new Dictionary<MediaType, Tuple<int, int>>()
         {
-            [MediaTypes.File] = new Tuple<int, int>(5, 20 * 1024 * 1024),
-            [MediaTypes.Image] = new Tuple<int, int>(5, 2 * 1024 * 1024),
-            [MediaTypes.Video] = new Tuple<int, int>(5, 10 * 1024 * 1024),
-            [MediaTypes.Voice] = new Tuple<int, int>(5, 2 * 1024 * 1024),
+            [MediaType.File] = new Tuple<int, int>(5, 20 * 1024 * 1024),
+            [MediaType.Image] = new Tuple<int, int>(5, 2 * 1024 * 1024),
+            [MediaType.Video] = new Tuple<int, int>(5, 10 * 1024 * 1024),
+            [MediaType.Voice] = new Tuple<int, int>(5, 2 * 1024 * 1024),
         };
 
         private readonly FileInfo _fileInfo;
+
+        /// <summary>
+        /// 获取一个值，该值表示资源Id。
+        /// </summary>
+        public string MediaId { get; internal set; }
 
         /// <summary>
         /// 获取一个值，该值表示素材最大长度。
@@ -39,7 +44,7 @@ namespace WeChat.Enterprise
         /// <summary>
         /// 获取一个值，该值表示素材媒体类型。
         /// </summary>
-        public string Type { get; private set; }
+        public MediaType MediaType { get; private set; }
 
         /// <summary>
         /// 获取一个值，该值表示素材名称。
@@ -51,19 +56,15 @@ namespace WeChat.Enterprise
         /// </summary>
         public string Path => _fileInfo.FullName;
 
-        /// <summary>
-        /// 获取一个值，该值表示素材文件后缀名。
-        /// </summary>
-        public string Extension => _fileInfo.Extension;
 
         /// <summary>
         /// 获取一个值，该值表示素材媒体内容类型。
         /// </summary>
         public string ContentType { get; private set; }
 
-        private Material(string mediaType, FileInfo info)
+        private Material(MediaType mediaType, FileInfo info)
         {
-            Type = mediaType;
+            MediaType = mediaType;
             var limit = storageLimits[mediaType];
             Minimum = limit.Item1;
             Maximum = limit.Item2;
@@ -86,19 +87,19 @@ namespace WeChat.Enterprise
                 if (string.Equals(".jpg", extension, StringComparison.OrdinalIgnoreCase)
                     || string.Equals(".png", extension, StringComparison.OrdinalIgnoreCase))
                 {
-                    return new Material(MediaTypes.Image, info);
+                    return new Material(MediaType.Image, info);
                 }
-                else if (string.Equals(".arm", extension, StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(".amr", extension, StringComparison.OrdinalIgnoreCase))
                 {
-                    return new Material(MediaTypes.Voice, info);
+                    return new Material(MediaType.Voice, info);
                 }
                 else if (string.Equals(".mp4", extension, StringComparison.OrdinalIgnoreCase))
                 {
-                    return new Material(MediaTypes.Video, info);
+                    return new Material(MediaType.Video, info);
                 }
                 else
                 {
-                    return new Material(MediaTypes.File, info);
+                    return new Material(MediaType.File, info);
                 }
             });
         }
@@ -136,7 +137,7 @@ namespace WeChat.Enterprise
         {
             if (string.IsNullOrEmpty(boundary))
             {
-                boundary = $"update_{Type}_{Extension.Replace(".", "")}";
+                boundary = $"update_{MediaType}_{_fileInfo.Extension.Replace(".", "")}";
             }
             MultipartFormDataContent content = new MultipartFormDataContent(boundary);
             content.Headers.Remove("Content-Type");

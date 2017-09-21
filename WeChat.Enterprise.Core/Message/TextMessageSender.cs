@@ -13,9 +13,7 @@ namespace WeChat.Enterprise
         public TextMessageSender(WeChat weChat) : base(weChat)
         {
         }
-
-        public override string MessageType => MessageTypes.Text;
-
+        
         public TextMessageSender ClearText()
         {
             sb.Clear();
@@ -66,6 +64,7 @@ namespace WeChat.Enterprise
         {
             return Task.Run(() =>
             {
+                content.Add("msgtype", "text");
                 var cont = new JObject();
                 cont.Add("content", sb.ToString());
                 content.Add("text", cont);

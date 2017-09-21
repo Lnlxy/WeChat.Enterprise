@@ -12,8 +12,6 @@ namespace WeChat.Enterprise
     {
         public WeChat WeChat { get; private set; }
 
-        public abstract string MessageType { get; }
-
         public bool Safe { get; set; }
 
         protected MessageSender(WeChat weChat)
@@ -21,6 +19,12 @@ namespace WeChat.Enterprise
             WeChat = weChat;
         }
 
+        /// <summary>
+        /// 将消息发送到指定的应用和目标。
+        /// </summary>
+        /// <param name="agent"></param>
+        /// <param name="targets"></param>
+        /// <returns></returns>
         public Task<MessageSendResult> SendAsync(AgentKey agent, MessageSendTargets targets)
         {
             //https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=ACCESS_TOKEN
@@ -85,7 +89,6 @@ namespace WeChat.Enterprise
         {
             targets.AppendToObject(content);
             content.Add("agentid", agentKey.Id);
-            content.Add("msgtype", MessageType);
             content.Add("safe", System.Convert.ToInt32(Safe));
         }
     }

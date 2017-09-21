@@ -4,14 +4,11 @@ using System.Text;
 
 namespace WeChat.Enterprise
 {
-    sealed class MediaTypes
+    public enum MediaType
     {
-        public static readonly string Image = "image";
-
-        public static readonly string Voice = "voice";
-
-        public static readonly string Video = "video";
-
-        public static readonly string File = "file";
+        File = 0,
+        Image = 1,
+        Voice = 2,
+        Video = 3
     }
 }
