@@ -46,14 +46,27 @@ namespace WeChat.Enterprise
         }
 
 
-        public TextMessageSender CreateTextSender()
+        public TextMessageSender CreateTextMessageSender()
         {
             return new TextMessageSender(this);
         }
 
-        public MaterialMessageSender CreateMaterialSender()
+        public MaterialMessageSender CreateMaterialMessageSender()
         {
             return new MaterialMessageSender(this);
+        }
+
+        public TextCardMessageSender CreateTextCardMessageSender()
+        {
+            return new TextCardMessageSender(this);
+        }
+        public NewsMessageSender CreateNewsMessageSender()
+        {
+            return new NewsMessageSender(this);
+        }
+        public MpNewsMessageSender CreateMpNewsMessageSender()
+        {
+            return new MpNewsMessageSender(this);
         }
 
         public bool NeedRefreshAccessToken(int errorCode)
@@ -71,11 +84,11 @@ namespace WeChat.Enterprise
         {
             if (forceUpdate)
             {
-                return accessTokenCache.GetAccessTokenAsync(key);
+                return accessTokenCache.UpdateAndGetTokeAsync(key);
             }
             else
             {
-                return accessTokenCache.UpdateAndGetTokeAsync(key);
+                return accessTokenCache.GetAccessTokenAsync(key);
             }
 
         }

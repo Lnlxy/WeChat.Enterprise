@@ -7,14 +7,14 @@ namespace WeChat.Enterprise
     public sealed class MaterialMessageSender : MessageSender
     {
         private Func<AgentKey, Task<Material>> getMaterialFunc;
-        private string _name, _description;
+        private string _title, _description;
 
         public MaterialMessageSender(WeChat weChat) : base(weChat)
         {
         }
-        public MaterialMessageSender SetVideoParams(string name, string description)
+        public MaterialMessageSender SetVideoParams(string title, string description)
         {
-            _name = name;
+            _title = title;
             _description = description;
             return this;
         }
@@ -53,7 +53,7 @@ namespace WeChat.Enterprise
                         content.Add("voice", cont);
                         break;
                     case MediaType.Video:
-                        cont.Add("title", _name);
+                        cont.Add("title", _title);
                         cont.Add("description", _description);
                         content.Add("video", cont);
                         break;
