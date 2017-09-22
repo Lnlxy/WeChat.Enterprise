@@ -1,6 +1,8 @@
 ﻿using Flurl.Http;
 using Microsoft.Extensions.Caching.Memory;
 using System;
+using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace WeChat.Enterprise
@@ -96,6 +98,39 @@ namespace WeChat.Enterprise
                 .SetQueryParams(new { access_token = token.Token, media_id = mediaId })
                 .GetAsync();
                 return await Material.LoadFromAsync(result.Content);
+            });
+        }
+
+        private Task<ByteArrayContent> CreateByteArrayContentAsync(FileInfo fileInfo)
+        {
+            return Task.Run(() =>
+            {
+                using (var stream = fileInfo.OpenRead())
+                {
+                    var bytes = new byte[stream.Length];
+                    stream.Read(bytes, 0, bytes.Length);
+                    var content = new ByteArrayContent(bytes);
+                    content.Headers.Remove("Content-Disposition");
+                    content.Headers.TryAddWithoutValidation("Content-Disposition", $"form-data;name=\"media\";filename=\"{fileInfo.Name}\"");
+                    content.Headers.Remove("Content-Type");
+                    content.Headers.TryAddWithoutValidation("Content-Type", MimeMapping.GetMimeMapping(fileInfo.Name));
+                    return content;
+                }
+            });
+        }
+
+        private Task<MultipartFormDataContent> CreateMultipartFormDataContentAsync(string file)
+        {
+            return Task.Run(async () =>
+            {
+                var info = new FileInfo(file);
+                var boundary = Guid.NewGuid().ToString();
+                MultipartFormDataContent content = new MultipartFormDataContent(boundary);
+                content.Headers.Remove("Content-Type");
+                content.Headers.Add("Content-Type", $"multipart/form-data; boundary={boundary}");
+                var binary = await CreateByteArrayContentAsync(info);
+                content.Add(binary);
+                return content;
             });
         }
 

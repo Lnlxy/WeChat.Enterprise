@@ -6,36 +6,33 @@ using Newtonsoft.Json.Linq;
 
 namespace WeChat.Enterprise
 {
-    public sealed class NewsMessageSender : MessageSender
+    public sealed class NewsMessage : Message
     {
         private string _title, _description, _url, _picUrl, _btnTxt;
-        public NewsMessageSender(WeChat weChat) : base(weChat)
-        {
 
-        }
-
-        public NewsMessageSender Title(string title)
+        public override string MessageType => MessageTypes.News; 
+        public NewsMessage Title(string title)
         {
             _title = title;
             return this;
         }
-        public NewsMessageSender Description(string description)
+        public NewsMessage Description(string description)
         {
             _description = description;
             return this;
         }
-        public NewsMessageSender Url(string url)
+        public NewsMessage Url(string url)
         {
             _url = url;
             return this;
         }
 
-        public NewsMessageSender PictureUrl(string picUrl)
+        public NewsMessage PictureUrl(string picUrl)
         {
             _picUrl = picUrl;
             return this;
         }
-        public NewsMessageSender BtnTxt(string btntxt)
+        public NewsMessage BtnTxt(string btntxt)
         {
             _btnTxt = btntxt;
             return this;

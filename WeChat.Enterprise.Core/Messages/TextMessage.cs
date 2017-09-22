@@ -1,59 +1,60 @@
 ﻿using Newtonsoft.Json.Linq;
-using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace WeChat.Enterprise
 {
-    public sealed class TextMessageSender : MessageSender
+    /// <summary>
+    /// 构建文本消息。
+    /// </summary>
+    public sealed class TextMessage : Message
     {
         private readonly StringBuilder sb = new StringBuilder();
 
-        public TextMessageSender(WeChat weChat) : base(weChat)
-        {
-        }
-        
-        public TextMessageSender ClearText()
+        public override string MessageType => MessageTypes.Text;
+         
+
+        public TextMessage ClearText()
         {
             sb.Clear();
             return this;
         }
-        public TextMessageSender ClearNew(string newText)
+        public TextMessage ClearNew(string newText)
         {
             sb.Clear();
             sb.Append(newText);
             return this;
         }
 
-        public TextMessageSender Append(string value)
+        public TextMessage Append(string value)
         {
             sb.Append(value);
             return this;
         }
-        public TextMessageSender AppendLine()
+        public TextMessage AppendLine()
         {
             sb.AppendLine();
             return this;
         }
-        public TextMessageSender AppendLine(string value)
+        public TextMessage AppendLine(string value)
         {
             sb.AppendLine(value);
             return this;
         }
 
-        public TextMessageSender AppendLink(string name, string url)
+        public TextMessage AppendLink(string name, string url)
         {
             sb.AppendFormat("<a href=\"{0}\">{1}</a>", url, name);
             return this;
         }
 
-        public TextMessageSender AppendJion(string separator, params object[] values)
+        public TextMessage AppendJion(string separator, params object[] values)
         {
             sb.AppendJoin(separator, values);
             return this;
         }
-        public TextMessageSender AppendJion<T>(string separator, IEnumerable<T> values)
+        public TextMessage AppendJion<T>(string separator, IEnumerable<T> values)
         {
             sb.AppendJoin(separator, values);
             return this;
@@ -64,7 +65,6 @@ namespace WeChat.Enterprise
         {
             return Task.Run(() =>
             {
-                content.Add("msgtype", "text");
                 var cont = new JObject();
                 cont.Add("content", sb.ToString());
                 content.Add("text", cont);

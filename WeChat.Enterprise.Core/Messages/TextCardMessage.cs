@@ -6,45 +6,44 @@ using Newtonsoft.Json.Linq;
 
 namespace WeChat.Enterprise
 {
-    public sealed class TextCardMessageSender : MessageSender
+    public sealed class TextCardMessage : Message
     {
         private string _title;
         private string _gray, _heighlight, _normal;
         private string _url;
         private string _btnText;
-        public TextCardMessageSender(WeChat weChat) : base(weChat)
-        {
-        }
 
-        public TextCardMessageSender Title(string title)
+        public override string MessageType => MessageTypes.TextCard;
+         
+        public TextCardMessage Title(string title)
         {
             _title = title;
             return this;
         }
 
-        public TextCardMessageSender Url(string url)
+        public TextCardMessage Url(string url)
         {
             _url = url;
             return this;
         }
 
-        public TextCardMessageSender BtnText(string value)
+        public TextCardMessage BtnText(string value)
         {
             _btnText = value;
             return this;
         }
 
-        public TextCardMessageSender Gary(string value)
+        public TextCardMessage Gary(string value)
         {
             _gray = value;
             return this;
         }
-        public TextCardMessageSender Normal(string value)
+        public TextCardMessage Normal(string value)
         {
             _normal = value;
             return this;
         }
-        public TextCardMessageSender Highlight(string value)
+        public TextCardMessage Highlight(string value)
         {
             _heighlight = value;
             return this;

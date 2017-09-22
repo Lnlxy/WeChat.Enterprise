@@ -1,23 +1,17 @@
 ﻿using Flurl.Http;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.IO;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace WeChat.Enterprise
 {
-    public abstract class MessageSender
+    public abstract class Message
     {
-        public WeChat WeChat { get; private set; }
+        public WeChat WeChat { get; set; }
+
+        public abstract string MessageType { get; }
 
         public bool Safe { get; set; }
-
-        protected MessageSender(WeChat weChat)
-        {
-            WeChat = weChat;
-        }
 
         /// <summary>
         /// 将消息发送到指定的应用和目标。
@@ -89,6 +83,7 @@ namespace WeChat.Enterprise
         {
             targets.AppendToObject(content);
             content.Add("agentid", agentKey.Id);
+            content.Add("msgtype", MessageType);
             content.Add("safe", System.Convert.ToInt32(Safe));
         }
     }

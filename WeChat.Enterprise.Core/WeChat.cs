@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace WeChat.Enterprise
 {
     /// <summary>
-    /// 提供企业微信访问功能。
+    /// 提供企业微信操作功能。
     /// </summary>
     public sealed class WeChat
     {
@@ -45,28 +45,11 @@ namespace WeChat.Enterprise
             materialCache = new MaterialCache(this);
         }
 
-
-        public TextMessageSender CreateTextMessageSender()
+        public T CreateMessage<T>() where T : Message, new()
         {
-            return new TextMessageSender(this);
-        }
-
-        public MaterialMessageSender CreateMaterialMessageSender()
-        {
-            return new MaterialMessageSender(this);
-        }
-
-        public TextCardMessageSender CreateTextCardMessageSender()
-        {
-            return new TextCardMessageSender(this);
-        }
-        public NewsMessageSender CreateNewsMessageSender()
-        {
-            return new NewsMessageSender(this);
-        }
-        public MpNewsMessageSender CreateMpNewsMessageSender()
-        {
-            return new MpNewsMessageSender(this);
+            var message = new T();
+            message.WeChat = this;
+            return message;
         }
 
         public bool NeedRefreshAccessToken(int errorCode)

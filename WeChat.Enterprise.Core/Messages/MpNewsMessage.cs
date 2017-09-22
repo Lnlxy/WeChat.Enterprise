@@ -6,59 +6,58 @@ using Newtonsoft.Json.Linq;
 
 namespace WeChat.Enterprise
 {
-    public sealed class MpNewsMessageSender : MessageSender
+    public sealed class MpNewsMessage : Message
     {
         private Func<AgentKey, Task<Material>> getMaterialFunc;
         private string _anthor, _title, _digest, _url, _btnTxt;
         private string _content;
-        public MpNewsMessageSender(WeChat weChat) : base(weChat)
-        {
-        }
-        public MpNewsMessageSender Anthor(string anthor)
+
+        public override string MessageType => MessageTypes.Mpnews; 
+        public MpNewsMessage Anthor(string anthor)
         {
             _anthor = anthor;
             return this;
         }
-        public MpNewsMessageSender Content(string content)
+        public MpNewsMessage Content(string content)
         {
             _content = content;
             return this;
         }
-        public MpNewsMessageSender Title(string title)
+        public MpNewsMessage Title(string title)
         {
             _title = title;
             return this;
         }
-        public MpNewsMessageSender Digest(string digest)
+        public MpNewsMessage Digest(string digest)
         {
             _digest = digest;
             return this;
         }
-        public MpNewsMessageSender ContentUrl(string url)
+        public MpNewsMessage ContentUrl(string url)
         {
             _url = url;
             return this;
         }
 
-        public MpNewsMessageSender With(Material material)
+        public MpNewsMessage With(Material material)
         {
             getMaterialFunc = new Func<AgentKey, Task<Material>>(i => Task.Run(() => material));
             return this;
         }
 
-        public MpNewsMessageSender WithFile(string fileName)
+        public MpNewsMessage WithFile(string fileName)
         {
             getMaterialFunc = new Func<AgentKey, Task<Material>>(async i => await WeChat.MaterialCache.Create(fileName, i));
             return this;
         }
 
-        public MpNewsMessageSender WithMediaId(string mediaId)
+        public MpNewsMessage WithMediaId(string mediaId)
         {
             getMaterialFunc = new Func<AgentKey, Task<Material>>(i => Task.Run(() => WeChat.MaterialCache.Get(mediaId)));
             return this;
         }
 
-        public MpNewsMessageSender BtnTxt(string btntxt)
+        public MpNewsMessage BtnTxt(string btntxt)
         {
             _btnTxt = btntxt;
             return this;
