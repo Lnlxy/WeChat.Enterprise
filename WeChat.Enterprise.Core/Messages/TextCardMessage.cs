@@ -15,7 +15,7 @@ namespace WeChat.Enterprise
 
         public override string MessageType => MessageTypes.TextCard;
          
-        public TextCardMessage Title(string title)
+        public TextCardMessage SetTitle(string title)
         {
             _title = title;
             return this;
@@ -70,8 +70,7 @@ namespace WeChat.Enterprise
                 }
                 cont.Add("description", sb.ToString());
                 cont.Add("url", _url);
-                content.Add("btntext", _btnText);
-                content.Add("msgtype", "textcard");
+                content.Add("btntext", _btnText); 
                 content.Add("textcard", cont);
             });
         }

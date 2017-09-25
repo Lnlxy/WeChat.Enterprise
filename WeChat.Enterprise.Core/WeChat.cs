@@ -73,7 +73,6 @@ namespace WeChat.Enterprise
             {
                 return accessTokenCache.GetAccessTokenAsync(key);
             }
-
         }
 
         /// <summary>
@@ -84,8 +83,7 @@ namespace WeChat.Enterprise
         {
             return host.AppendPathSegment("cgi-bin");
         }
-
-
+        
         public Task<Agent> GetAgentAsync(AgentKey agentKey)
         {
             //https://qyapi.weixin.qq.com/cgi-bin/agent/get?access_token=ACCESS_TOKEN&agentid=AGENTID;

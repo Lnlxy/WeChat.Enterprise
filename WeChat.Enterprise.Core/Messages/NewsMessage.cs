@@ -1,40 +1,27 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 
 namespace WeChat.Enterprise
 {
-    public sealed class NewsMessage : Message
+    public sealed class NewsMessage<TArticle> : Message where TArticle : Article, new()
     {
-        private string _title, _description, _url, _picUrl, _btnTxt;
+        private string messageType = "";
+        private readonly List<TArticle> articles = new List<TArticle>();
 
-        public override string MessageType => MessageTypes.News; 
-        public NewsMessage Title(string title)
+        public override string MessageType => messageType;
+
+        public IEnumerable<TArticle> Articles => articles.AsReadOnly();
+
+        public NewsMessage<TArticle> SetMessageType(string msgType)
         {
-            _title = title;
-            return this;
-        }
-        public NewsMessage Description(string description)
-        {
-            _description = description;
-            return this;
-        }
-        public NewsMessage Url(string url)
-        {
-            _url = url;
+            messageType = msgType;
             return this;
         }
 
-        public NewsMessage PictureUrl(string picUrl)
+        public NewsMessage<TArticle> Append(params TArticle[] articles)
         {
-            _picUrl = picUrl;
-            return this;
-        }
-        public NewsMessage BtnTxt(string btntxt)
-        {
-            _btnTxt = btntxt;
+            this.articles.AddRange(articles);
             return this;
         }
 
@@ -42,22 +29,14 @@ namespace WeChat.Enterprise
         {
             return Task.Run(() =>
             {
-                var cont = new JObject
+                var cont = new JObject();
+                var jar = new JArray();
+                cont.Add("articles", jar);
+                foreach (var article in articles)
                 {
-                    {
-                        "articles",
-                        new JArray(new JObject()
-                        {
-                            { "title", _title },
-                            { "description", _description },
-                            { "url", _url },
-                            { "picurl", _picUrl },
-                            { "btntxt", _btnTxt }
-                        })
-                    },
-                };
-                content.Add("msgtype", "news");
-                content.Add("news", cont);
+                    jar.Add(article.ToJobject());
+                }
+                content.Add(messageType, cont);
             });
         }
     }

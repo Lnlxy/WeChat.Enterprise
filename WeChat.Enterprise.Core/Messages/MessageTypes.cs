@@ -4,7 +4,7 @@ using System.Text;
 
 namespace WeChat.Enterprise
 {
-    class MessageTypes
+    public class MessageTypes
     {
         public static readonly string Text = "text";
 

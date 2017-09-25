@@ -13,13 +13,13 @@ namespace WeChat.Enterprise
 
         public MaterialMessage WithFile(string fileName)
         {
-            getMaterialFunc = new Func<AgentKey, Task<Material>>(async i => await WeChat.MaterialCache.Create(fileName, i));
+            getMaterialFunc = new Func<AgentKey, Task<string>>(async i => (await WeChat.MaterialCache.Create(fileName, i)).MediaId);
             return this;
         }
 
         public MaterialMessage WithMediaId(string mediaId)
         {
-            getMaterialFunc = new Func<AgentKey, Task<Material>>(i => Task.Run(() => WeChat.MaterialCache.Get(mediaId)));
+            getMaterialFunc = new Func<AgentKey, Task<string>>(i => Task.Run(() => WeChat.MaterialCache.Get(mediaId).MediaId));
             return this;
         }
 
